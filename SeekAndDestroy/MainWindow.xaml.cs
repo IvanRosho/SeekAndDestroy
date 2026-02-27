@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using SeekAndDestroy.VM;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,6 +20,7 @@ namespace SeekAndDestroy
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new MainVM();
         }
     }
 }

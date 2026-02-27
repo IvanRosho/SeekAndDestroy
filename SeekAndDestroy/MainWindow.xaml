@@ -3,10 +3,296 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converter="clr-namespace:SeekAndDestroy.Converters"
         xmlns:local="clr-namespace:SeekAndDestroy"
+        xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+        WindowStyle="SingleBorderWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Пеленгатор" Height="800" Width="1315">
+    <Window.Resources>
+        <converter:BoolInverterConverter x:Key="BoolInverterConverter"/>
+        <converter:RelativeKoordToAbsoluteConverter x:Key="RelativeKoordToAbsoluteConverter"/>
+        <converter:EqualConverter x:Key="EqualConverter"/>
+    </Window.Resources>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="560"/>
+            <ColumnDefinition Width="550"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Canvas x:Name="RadarField" Width="550" Height="550" Background="#101010" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Top" Margin="5,30">
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleY="-5"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+                <!-- Несколько линий сетки внутри (пока статично, для наброска) -->
+                <!-- Горизонтальные -->
+                <Line X1="10" Y1="137" X2="540" Y2="137" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="20"/>
+                <Line X1="10" Y1="275" X2="540" Y2="275" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="4"/>
+                <Line X1="10" Y1="412" X2="540" Y2="412" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="20"/>
+                <!-- Вертикальные -->
+                <Line X1="137" Y1="10" X2="137" Y2="540" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="20"/>
+                <Line X1="275" Y1="10" X2="275" Y2="540" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="4"/>
+                <Line X1="412" Y1="10" X2="412" Y2="540" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="20"/>
 
+                <Path Stroke="Lime" StrokeThickness="2" Data=" M 0 0 L 40 0 L 40 40 L 0 40 Z M 20 0 L 20 40 M 0 20 L 40 20"
+                      Canvas.Left="{Binding Path=Seeker.X, Converter={StaticResource RelativeKoordToAbsoluteConverter}, ConverterParameter=WithoutOffset, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                      Canvas.Top="{Binding Path=Seeker.Y, Converter={StaticResource RelativeKoordToAbsoluteConverter}, ConverterParameter=WithoutOffset, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <Ellipse Width="8" Height="8"
+         Fill="Red"
+         Canvas.Left="{Binding Path=Target.X, Converter={StaticResource RelativeKoordToAbsoluteConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+         Canvas.Top="{Binding Path=Target.Y, Converter={StaticResource RelativeKoordToAbsoluteConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </Canvas>
+            <TextBlock Text="{Binding Path=Status, StringFormat='Статус: {0}'}" VerticalAlignment="Bottom" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Column="1" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="200"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Canvas Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#ddd8d8d8">
+
+                <!-- === БЛОКИ === -->
+
+                <!-- ОК -->
+                <Rectangle Canvas.Left="140" Canvas.Top="275" Width="80" Height="80" Stroke="Black" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Text="ОК" Canvas.Left="169" Canvas.Top="304" Foreground="Black" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                <!-- ИУРок -->
+                <Rectangle Canvas.Left="140" Canvas.Top="50" Width="80" Height="40" Stroke="Black" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Text="ИУРок" Canvas.Left="156" Canvas.Top="59" Foreground="Black" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <!-- ОК → ИУРок -->
+                <Line X1="180" Y1="275" X2="180" Y2="95" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="175,100 185,100 180,90" Fill="Black"/>
+                <TextBlock Text="Uy, Uz" Canvas.Left="184" Canvas.Top="112"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                <!-- ОК → ПРР -->
+                <Line X1="220" Y1="315" X2="335" Y2="315" Stroke="Black" StrokeThickness="2" />
+                <Line X1="340" Y1="315" X2="350" Y2="315" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="330,310 330,320 340,315" Fill="Black"/>
+                <TextBlock Text="Uц" Canvas.Left="270" Canvas.Top="297"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+                <!-- ДСП -->
+                <Rectangle Canvas.Left="340" Canvas.Top="150" Width="80" Height="60"
+               Stroke="Black" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Text="ДСП" Canvas.Left="367" Canvas.Top="169"
+               Foreground="Black" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Line X1="380" Y1="210" X2="380" Y2="270" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="375,265 385,265 380,275" Fill="Black"/>
+                <Line X1="380" Y1="275" X2="380" Y2="285" Stroke="Black" StrokeThickness="2" />
+
+                <!-- ДСП -> в СУ -->
+                <Line X1="415" Y1="315" X2="440" Y2="315" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="440,310 440,320 450,315" Fill="Black"/>
+
+                <!-- ПРР -->
+                <Rectangle Canvas.Left="340" Canvas.Top="275"
+               Width="80" Height="80"
+               Stroke="Black" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Text="ПРР" Canvas.Left="390" Canvas.Top="335"
+               Foreground="Black" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+                <Line X1="350" Y1="315" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsTargeting}"/>
+                <Line X1="410" Y1="315" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsTargeting}"/>
+                <Line X1="380" Y1="275" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsSearch}"/>
+                <Ellipse Width="10" Height="10" Canvas.Left="345" Canvas.Top="310" Fill="Black"/>
+                <Ellipse Width="10" Height="10" Canvas.Left="405" Canvas.Top="310" Fill="Black"/>
+                <Ellipse Width="10" Height="10" Canvas.Left="375" Canvas.Top="280" Fill="Black"/>
+                <Ellipse Width="10" Height="10" Canvas.Left="375" Canvas.Top="340" Fill="Black"/>
+
+                <!-- ПрОК -->
+                <Rectangle Canvas.Left="340" Canvas.Top="402" Width="80" Height="60"
+               Stroke="Black" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Text="ПрОК" Canvas.Left="359" Canvas.Top="421"
+               Foreground="Black" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                <Line X1="380" Y1="350" X2="380" Y2="400" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="375,393 385,393 380,403" Fill="Black"/>
+                <!-- === ПОДПИСИ К СИГНАЛАМ === -->
+                <TextBlock Text="2Wобз" Canvas.Left="60" Canvas.Top="290"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <TextBlock Text="в СУ" Canvas.Left="436" Canvas.Top="297"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                <TextBlock Text="Uп" Canvas.Left="390" Canvas.Top="238"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <!-- Координатные оси-->
+                <Line X1="141" Y1="275" X2="141" Y2="240" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="136,240 146,240 141,220" Fill="Black"/>
+                <TextBlock Text="Yc" Canvas.Left="122" Canvas.Top="220"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+                <Line X1="140" Y1="315" X2="100" Y2="315" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="100,310 100,320 90,315" Fill="Black"/>
+                <TextBlock Text="Xc" Canvas.Left="92" Canvas.Top="320"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+                <Line X1="140" Y1="315" X2="80" Y2="365" Stroke="Black" StrokeThickness="2" />
+                <Polygon Points="75,360 85,370 75,370" Fill="Black"/>
+                <TextBlock Text="Zc" Canvas.Left="88" Canvas.Top="366"
+               Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+                <!--Поворотная платформа-->
+                <Line X1="170" Y1="355" X2="170" Y2="410" Stroke="Black" StrokeThickness="4"/>
+                <Line X1="190" Y1="355" X2="190" Y2="410" Stroke="Black" StrokeThickness="4"/>
+                <Ellipse Canvas.Left="145" Canvas.Top="405" Width="70" Height="70" Stroke="Black" StrokeThickness="4"/>
+                <Line X1="180" Y1="475" X2="180" Y2="520" Stroke="Black" StrokeThickness="4"/>
+                <Line X1="130" Y1="520" X2="230" Y2="520" Stroke="Black" StrokeThickness="4"/>
+
+                <Polygon Points="340 425 205 380 210 370 193 380 195 400 200 390 340 440"  Fill="Black"/>
+                <Path Stroke="Black" StrokeThickness="2" Data="M 135,445 A 40,40 0 0 0 225,445"/>
+                <Path Stroke="Black" StrokeThickness="1" Data="M 120,430 A 50,50 0 0 0 130,480"/>
+                <Line X1="120" Y1="430" X2="125" Y2="440" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="120" Y1="430" X2="110" Y2="440" Stroke="Black" StrokeThickness="1"/>
+
+                <!-- угол обзора -->
+
+                <Line X1="140" Y1="315" X2="-280" Y2="30" Stroke="#FF257D25" StrokeThickness="2" StrokeDashArray="5"/>
+                <Line X1="140" Y1="315" X2="-280" Y2="580" Stroke="#FF257D25" StrokeThickness="2" StrokeDashArray="5"/>
+                <Path Stroke="Black" StrokeThickness="1" Data="M 70,270 A 70,70 0 0 0 70,360" StrokeDashArray="3" Panel.ZIndex="-1"/>
+                <Polygon Points="71,268 61,278 67,280" Fill="Black"/>
+                <Polygon Points="69,358 58,351 65,347" Fill="Black"/>
+            </Canvas>
+            <Canvas Grid.Row="1" Grid.Column="0">
+                <!--график-->
+            </Canvas>
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical">
+                <TextBlock Text="Расчетные значения для текущего цикла:" TextWrapping="WrapWithOverflow"/>
+                <Label Content="{Binding Stat_P_i, StringFormat='P(i)={0:F2}'}"/>
+                <Label Content="{Binding Stat_t_i, StringFormat='t(i)={0:F2}'}"/>
+                <Label Content="{Binding Stat_n, StringFormat='n={0:F2}'}"/>
+                <Label Content="{Binding Stat_k, StringFormat='k={0:F2}'}"/>
+                <TextBlock Text="Расчетные значения, усредненные по всем циклам:" TextWrapping="WrapWithOverflow"/>
+                <Label Content="{Binding Stat_P_n, StringFormat='P(n)={0:F2}'}"/>
+                <Label Content="{Binding Stat_t_n, StringFormat='t(n)={0:F2}'}"/>
+                <Label Content="{Binding Stat_m_n_s, StringFormat='m(n(s))={0:F2}'}"/>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Column="3" Width="200">
+            <Grid.Resources>
+                <Style TargetType="Label">
+                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                </Style>
+                <Style TargetType="GridSplitter">
+                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                    <Setter Property="Background" Value="Black"/>
+                    <Setter Property="Height" Value="1"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Content="Вид поиска"  Background="Wheat"/>
+            <ListBox Grid.Row="1" ItemsSource="{Binding SearchTypes}" SelectedItem="{Binding SelectedSearchType}" Padding="10,0,10,5" Background="Wheat">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <RadioButton Content="{Binding Name}"
+             ToolTip="{Binding Description}">
+                            <RadioButton.IsChecked>
+                                <MultiBinding Converter="{StaticResource EqualConverter}">
+                                    <Binding Path="." Mode="OneWay"/>
+                                    <Binding Path="DataContext.SelectedSearchType" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                </MultiBinding>
+                            </RadioButton.IsChecked>
+                        </RadioButton>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <GridSplitter Grid.Row="2"/>
+            <Label Content="Цель" Grid.Row="3" Background="MediumSpringGreen"/>
+            <Grid Grid.Row="4"  Background="MediumSpringGreen">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Content="Позиция" Grid.Row="0"/>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="X"/>
+                    <syncfusion:UpDown Grid.Column="1" MinValue="50" MaxValue="500" Value="{Binding Path=StartTargetX}"/>
+                    <Label Grid.Column="2" Content="Y"/>
+                    <syncfusion:UpDown Grid.Column="3" MinValue="50" MaxValue="500" Value="{Binding Path=StartTargetY}"/>
+                </Grid>
+                <Label Content="Скорость движения" Grid.Row="2" Grid.Column="0"/>
+                <Slider Margin="10,0" Grid.Row="3" x:Name="TargetSpeedSlider" Value="{Binding Path=Target.Speed}" Minimum="0.5"  Maximum="10" TickFrequency="1" TickPlacement="Both" Orientation="Horizontal" LargeChange="5" SmallChange="0.5"/>
+                <Label Grid.Row="4" Content="{Binding Value, ElementName=TargetSpeedSlider}" HorizontalAlignment="Center"/>
+            </Grid>
+            <GridSplitter Grid.Row="5"/>
+            <Label Content="Количество проходов" Grid.Row="6" Background="MistyRose"/>
+            <StackPanel Grid.Row="7" Orientation="Vertical" Background="MistyRose">
+                <CheckBox Content="Демонстрация" x:Name="DemoCheckBox" Margin="10,5" IsChecked="{Binding Path=DemoMode, Mode=OneWayToSource}"/>
+                <Slider  Margin="10,0" x:Name="RepeatSlider" Value="{Binding Path=TotalRepeats, Mode=OneWayToSource}" Minimum="1"  Maximum="18" TickFrequency="1" TickPlacement="Both"  Grid.Row="8" Height="25" Orientation="Horizontal" LargeChange="5" SmallChange="1"/>
+                <Label Content="{Binding Value, ElementName=RepeatSlider}" HorizontalAlignment="Center"/>
+                <CheckBox Content="С обратным проходом" Margin="10,5" IsChecked="{Binding Path=WithReturn, Mode=OneWayToSource}"/>
+            </StackPanel>
+            <GridSplitter Grid.Row="8"/>
+            <Button Grid.Row="9" Content="Пуск!" Margin="10,5" Height="40" FontSize="24" FontWeight="Bold" Command="{Binding StartCommand}">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder" BorderBrush="Red" BorderThickness="3" CornerRadius="16">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="AnimatedBrush" Color="#7FFF7F7F"/>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="AnimatedBrush" Storyboard.TargetProperty="Color" To="Red" Duration="0:0:0.3"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="AnimatedBrush" Storyboard.TargetProperty="Color" To="#7FFF7F7F" Duration="0:0:0.3"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
     </Grid>
 </Window>
