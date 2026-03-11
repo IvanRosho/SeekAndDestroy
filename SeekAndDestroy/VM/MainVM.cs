@@ -93,34 +93,103 @@ namespace SeekAndDestroy.VM
             }
         }
         public double StartTargetSpeed {
-            get => Target.Speed;
             set {
                 Target.Speed = value;
                 RaisePropertyChanged();
             }
         }
-        public RadarTarget Target { get; set; } = new RadarTarget(0.5, 0.5, 2);
+        private Target _target;
+        public Target Target { 
+            get => _target;
+            set {
+                _target = value;
+                RaisePropertyChanged();
+            } 
+        }
         #endregion
         #region Seeker
-        public Seeker Seeker { get; set; } = new Seeker();
+        private Seeker _seeker;
+        public Seeker Seeker { 
+            get => _seeker;
+            set {
+                _seeker = value;
+                RaisePropertyChanged();
+            } 
+        } 
         #endregion
         #region Settings
         public ObservableCollection<SearchPath> SearchTypes { get; set; } = new ObservableCollection<SearchPath>();
-        public SearchPath SelectedSearchType { get; set; }
-        public bool DemoMode { get; set; } = true;
-        public bool WithReturn { get; set; } = false;
-        public int TotalRepeats { get; set; } = 6;
+        private SearchPath selectedSearchType;
+        public SearchPath SelectedSearchType { 
+            get => selectedSearchType;
+            set { 
+                selectedSearchType  = value;
+                RaisePropertyChanged();
+            }
+        }
+        private bool demoMode, withReturn;
+        private string status;
+        private int totalRepeats;
+        public bool DemoMode {
+            get => demoMode;
+            set { 
+                demoMode = value;
+                RaisePropertyChanged();
+            }
+        }
+        public bool WithReturn {
+            get => withReturn;
+            set {
+                withReturn = value;
+                RaisePropertyChanged();
+            }
+        }
+        public int TotalRepeats {
+            get => totalRepeats;
+            set {
+                totalRepeats = value;
+                RaisePropertyChanged();
+            }
+        } 
         #endregion
-        #region Stat Props
-        public string Status { get; set; } = "";
+        #region Props
+        public string Status {
+            get => status;
+            set {
+                status = value;
+                RaisePropertyChanged();
+            }
+        }
+        private bool isTargeting, isSearch;
+        public bool IsTargeting {
+            get => isTargeting;
+            set {
+                isTargeting = value;
+                RaisePropertyChanged();
+            }
+        }
+        public bool IsSearch {
+            get => isSearch;
+            set {
+                isSearch = value;
+                RaisePropertyChanged();
+            }
+        }
+        private List<RadarObject> RadarObjects;
         #endregion
 
         public AsyncRelayCommand StartCommand { get; }
         public MainVM() {
             StartCommand = new AsyncRelayCommand(startMethod);
-            LoadPathes();
-            RaisePropertyChanged(nameof(Target));
-            RaisePropertyChanged(nameof(Seeker));
+            DemoMode = true;
+            WithReturn = false;
+            TotalRepeats = 6;
+            Status = "Не запущен";
+            Target = new Target(0.5,0.5,2);
+            Seeker = new Seeker();
+            RadarObjects = new List<RadarObject>() { Target, Seeker };
+            IsTargeting = IsSearch = false;
+            LoadPathes(); 
         }
 
         public async Task LoadPathes() {
@@ -141,13 +210,16 @@ namespace SeekAndDestroy.VM
                     }
                 }
             });
-            RaisePropertyChanged(nameof(SearchTypes));
             SelectedSearchType = SearchTypes.First();
-            RaisePropertyChanged(nameof(SelectedSearchType));
         }
         private async Task startMethod() {
-            await Task.Delay(100);
-
+            Status = "Двигаем цель!";
+            Target.SetAngle();
+            for (int i = 0; i < 20; i++) {
+                Target.Step();
+                await Task.Delay(100);
+            }
+            Status = "Опля!";
         }
     }
 }

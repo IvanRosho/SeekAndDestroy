@@ -5,11 +5,17 @@
     <Setting Name="PathesRoute" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SearchPathes</Value>
     </Setting>
-    <Setting Name="CanvasOffset" Type="System.Double" Scope="Application">
-      <Value Profile="(Default)">25</Value>
+    <Setting Name="SeekerSize" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">50</Value>
     </Setting>
     <Setting Name="CanvasSize" Type="System.Double" Scope="Application">
       <Value Profile="(Default)">550</Value>
+    </Setting>
+    <Setting Name="TargetSize" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">8</Value>
+    </Setting>
+    <Setting Name="StepDuration" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">100</Value>
     </Setting>
   </Settings>
 </SettingsFile>

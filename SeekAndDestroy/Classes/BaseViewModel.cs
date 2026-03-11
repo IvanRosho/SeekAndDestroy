@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SeekAndDestroy.Classes {
-    public class BaseViewModel {
+    public class BaseViewModel: INotifyPropertyChanged {
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged<T>(T oldvalue, T newvalue, Action onDifference, string propName) {
@@ -23,6 +24,7 @@ namespace SeekAndDestroy.Classes {
 
         protected virtual void RaisePropertyChanged([CallerMemberName] string propName = "") {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            Debug.WriteLine($"RaisePropertyChanged Invoked by {propName}");
         }
     }
 }

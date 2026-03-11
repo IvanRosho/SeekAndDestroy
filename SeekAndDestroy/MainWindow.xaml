@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converter="clr-namespace:SeekAndDestroy.Converters"
         xmlns:local="clr-namespace:SeekAndDestroy"
-        xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+        xmlns:ViewModels="clr-namespace:SeekAndDestroy.VM"
         WindowStyle="SingleBorderWindow"
         mc:Ignorable="d"
         Title="Пеленгатор" Height="800" Width="1315">
@@ -13,8 +13,10 @@
         <converter:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <converter:RelativeKoordToAbsoluteConverter x:Key="RelativeKoordToAbsoluteConverter"/>
         <converter:EqualConverter x:Key="EqualConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
     </Window.Resources>
-    <Grid>
+    <Grid d:DataContext="{d:DesignInstance Type=ViewModels:MainVM}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="560"/>
             <ColumnDefinition Width="550"/>
@@ -41,13 +43,36 @@
                 <Line X1="275" Y1="10" X2="275" Y2="540" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="4"/>
                 <Line X1="412" Y1="10" X2="412" Y2="540" Stroke="#3300FF00" StrokeThickness="1" StrokeDashArray="20"/>
 
-                <Path Stroke="Lime" StrokeThickness="2" Data=" M 0 0 L 40 0 L 40 40 L 0 40 Z M 20 0 L 20 40 M 0 20 L 40 20"
-                      Canvas.Left="{Binding Path=Seeker.X, Converter={StaticResource RelativeKoordToAbsoluteConverter}, ConverterParameter=WithoutOffset, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
-                      Canvas.Top="{Binding Path=Seeker.Y, Converter={StaticResource RelativeKoordToAbsoluteConverter}, ConverterParameter=WithoutOffset, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <Ellipse Width="8" Height="8"
-         Fill="Red"
-         Canvas.Left="{Binding Path=Target.X, Converter={StaticResource RelativeKoordToAbsoluteConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-         Canvas.Top="{Binding Path=Target.Y, Converter={StaticResource RelativeKoordToAbsoluteConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <Path x:Name="SeekerOnCanvas" Stroke="Lime" StrokeThickness="2" Data="M 0 0 L 1 0 L 1 1 L 0 1 Z M 0.5 0 L 0.5 1 M 0 0.5 L 1 0.5"
+                      d:Height="50" d:Width="50" d:Canvas.Left="25" d:Canvas.Top="25" Stretch="Fill">
+
+                    <Canvas.Left>
+                        <MultiBinding Converter="{StaticResource RelativeKoordToAbsoluteConverter}">
+                            <Binding Path="Seeker.X" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="Height" RelativeSource="{RelativeSource Self}"/>
+                        </MultiBinding>
+                    </Canvas.Left>
+                    <Canvas.Top>
+                        <MultiBinding Converter="{StaticResource RelativeKoordToAbsoluteConverter}">
+                            <Binding Path="Seeker.Y" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="Height" RelativeSource="{RelativeSource Self}"/>
+                        </MultiBinding>
+                    </Canvas.Top>
+                </Path>
+                <Ellipse x:Name="TargetOnCanvas" Fill="Red" d:Height="8" d:Width="8" d:Canvas.Left="100" d:Canvas.Top="150">
+                    <Canvas.Left>
+                        <MultiBinding Converter="{StaticResource RelativeKoordToAbsoluteConverter}">
+                            <Binding Path="Target.X" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="Height" RelativeSource="{RelativeSource Self}"/>
+                        </MultiBinding>
+                    </Canvas.Left>
+                    <Canvas.Top>
+                        <MultiBinding Converter="{StaticResource RelativeKoordToAbsoluteConverter}">
+                            <Binding Path="Target.Y" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="Height" RelativeSource="{RelativeSource Self}"/>
+                        </MultiBinding>
+                    </Canvas.Top>
+                </Ellipse>
             </Canvas>
             <TextBlock Text="{Binding Path=Status, StringFormat='Статус: {0}'}" VerticalAlignment="Bottom" Margin="0,0,0,20" HorizontalAlignment="Center"/>
         </Grid>
@@ -104,9 +129,9 @@
                 <TextBlock Text="ПРР" Canvas.Left="390" Canvas.Top="335"
                Foreground="Black" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
-                <Line X1="350" Y1="315" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsTargeting}"/>
-                <Line X1="410" Y1="315" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsTargeting}"/>
-                <Line X1="380" Y1="275" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsSearch}"/>
+                <Line X1="350" Y1="315" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsTargeting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <Line X1="410" Y1="315" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsTargeting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <Line X1="380" Y1="275" X2="380" Y2="345" Stroke="Red" StrokeThickness="4" Panel.ZIndex="-1" Visibility="{Binding IsSearch, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 <Ellipse Width="10" Height="10" Canvas.Left="345" Canvas.Top="310" Fill="Black"/>
                 <Ellipse Width="10" Height="10" Canvas.Left="405" Canvas.Top="310" Fill="Black"/>
                 <Ellipse Width="10" Height="10" Canvas.Left="375" Canvas.Top="280" Fill="Black"/>
@@ -180,7 +205,7 @@
                 <Label Content="{Binding Stat_m_n_s, StringFormat='m(n(s))={0:F2}'}"/>
             </StackPanel>
         </Grid>
-        <Grid Grid.Column="3" Width="200">
+        <Grid Grid.Column="3">
             <Grid.Resources>
                 <Style TargetType="Label">
                     <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -217,7 +242,7 @@
              ToolTip="{Binding Description}">
                             <RadioButton.IsChecked>
                                 <MultiBinding Converter="{StaticResource EqualConverter}">
-                                    <Binding Path="." Mode="OneWay"/>
+                                    <Binding Mode="OneWay"/>
                                     <Binding Path="DataContext.SelectedSearchType" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
                                 </MultiBinding>
                             </RadioButton.IsChecked>
@@ -231,6 +256,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
@@ -238,27 +264,35 @@
                 <Label Content="Позиция" Grid.Row="0"/>
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Slider Grid.Column="0" Margin="10,0" IsSnapToTickEnabled="True" Value="{Binding Path=StartTargetX}" Minimum="0"  Maximum="550" TickFrequency="1" Orientation="Horizontal" LargeChange="50" SmallChange="5"/>
+                    <Slider Grid.Column="1" Margin="10,0" IsSnapToTickEnabled="True" Value="{Binding Path=StartTargetY}" Minimum="0"  Maximum="550" TickFrequency="1" Orientation="Horizontal" LargeChange="50" SmallChange="5"/>
+                </Grid>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="X"/>
-                    <syncfusion:UpDown Grid.Column="1" MinValue="50" MaxValue="500" Value="{Binding Path=StartTargetX}"/>
+                    <TextBox Grid.Column="1" Text="{Binding Path=StartTargetX,StringFormat={}{0:0}}"/>
                     <Label Grid.Column="2" Content="Y"/>
-                    <syncfusion:UpDown Grid.Column="3" MinValue="50" MaxValue="500" Value="{Binding Path=StartTargetY}"/>
+                    <TextBox Grid.Column="3" Text="{Binding Path=StartTargetY,StringFormat={}{0:0}}"/>
                 </Grid>
-                <Label Content="Скорость движения" Grid.Row="2" Grid.Column="0"/>
-                <Slider Margin="10,0" Grid.Row="3" x:Name="TargetSpeedSlider" Value="{Binding Path=Target.Speed}" Minimum="0.5"  Maximum="10" TickFrequency="1" TickPlacement="Both" Orientation="Horizontal" LargeChange="5" SmallChange="0.5"/>
-                <Label Grid.Row="4" Content="{Binding Value, ElementName=TargetSpeedSlider}" HorizontalAlignment="Center"/>
+                <Label Content="Скорость движения" Grid.Row="3" Grid.Column="0"/>
+                <Slider Margin="10,0" Grid.Row="4" IsSnapToTickEnabled="True" x:Name="TargetSpeedSlider" Value="{Binding Path=Target.Speed}" Minimum="0.5"  Maximum="10" TickFrequency="0.1" Orientation="Horizontal" LargeChange="5" SmallChange="0.5"/>
+                <Label Grid.Row="5" Content="{Binding Value, ElementName=TargetSpeedSlider, StringFormat={}{0:0.##}}" HorizontalAlignment="Center"/>
             </Grid>
             <GridSplitter Grid.Row="5"/>
             <Label Content="Количество проходов" Grid.Row="6" Background="MistyRose"/>
             <StackPanel Grid.Row="7" Orientation="Vertical" Background="MistyRose">
-                <CheckBox Content="Демонстрация" x:Name="DemoCheckBox" Margin="10,5" IsChecked="{Binding Path=DemoMode, Mode=OneWayToSource}"/>
-                <Slider  Margin="10,0" x:Name="RepeatSlider" Value="{Binding Path=TotalRepeats, Mode=OneWayToSource}" Minimum="1"  Maximum="18" TickFrequency="1" TickPlacement="Both"  Grid.Row="8" Height="25" Orientation="Horizontal" LargeChange="5" SmallChange="1"/>
-                <Label Content="{Binding Value, ElementName=RepeatSlider}" HorizontalAlignment="Center"/>
-                <CheckBox Content="С обратным проходом" Margin="10,5" IsChecked="{Binding Path=WithReturn, Mode=OneWayToSource}"/>
+                <CheckBox Content="Демонстрация" x:Name="DemoCheckBox" Margin="10,5" IsChecked="{Binding Path=DemoMode}"/>
+                <Slider  Margin="10,0" x:Name="RepeatSlider" IsSnapToTickEnabled="True" Value="{Binding Path=TotalRepeats}" Minimum="1"  Maximum="18" TickFrequency="1" TickPlacement="Both"  Grid.Row="8" Height="25" Orientation="Horizontal" LargeChange="5" SmallChange="1"/>
+                <Label Content="{Binding Value, ElementName=RepeatSlider, StringFormat={}{0:0.##}}" HorizontalAlignment="Center"/>
+                <CheckBox Content="С обратным проходом" Margin="10,5" IsChecked="{Binding Path=WithReturn}"/>
             </StackPanel>
             <GridSplitter Grid.Row="8"/>
             <Button Grid.Row="9" Content="Пуск!" Margin="10,5" Height="40" FontSize="24" FontWeight="Bold" Command="{Binding StartCommand}">

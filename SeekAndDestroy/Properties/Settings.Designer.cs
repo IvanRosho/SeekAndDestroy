@@ -34,10 +34,10 @@ namespace SeekAndDestroy.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("25")]
-        public double CanvasOffset {
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public double SeekerSize {
             get {
-                return ((double)(this["CanvasOffset"]));
+                return ((double)(this["SeekerSize"]));
             }
         }
         
@@ -47,6 +47,24 @@ namespace SeekAndDestroy.Properties {
         public double CanvasSize {
             get {
                 return ((double)(this["CanvasSize"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        public double TargetSize {
+            get {
+                return ((double)(this["TargetSize"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int StepDuration {
+            get {
+                return ((int)(this["StepDuration"]));
             }
         }
     }

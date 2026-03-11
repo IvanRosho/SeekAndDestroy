@@ -17,7 +17,7 @@ namespace SeekAndDestroy.Converters
             var points = value as IEnumerable<PathPoint>;
             var pc = new PointCollection();
             foreach (var p in points)
-                pc.Add(new Point(p.X * Settings.Default.CanvasSize + Settings.Default.CanvasOffset, p.Y * Settings.Default.CanvasSize + Settings.Default.CanvasOffset));
+                pc.Add(new Point(p.X * Settings.Default.CanvasSize + Settings.Default.SeekerSize, p.Y * Settings.Default.CanvasSize + Settings.Default.SeekerSize));
             return pc;
         }
 
