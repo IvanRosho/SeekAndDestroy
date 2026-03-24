@@ -39,5 +39,7 @@ namespace SeekAndDestroy.VM {
             DX = (Random.Shared.NextDouble() * 2.0 - 1.0) * speed;    // (-1..1) * speed 
             DY = Math.Sqrt(speed * speed - DX * DX);
         }
+
+        public bool IsLost => x < 0.0 || y < 0.0 || x>1.0 || y>1.0;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using SeekAndDestroy.Classes;
 using SeekAndDestroy.Converters;
+using SeekAndDestroy.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,7 +19,7 @@ namespace SeekAndDestroy.VM
         private double stat_P_i;
         public double Stat_P_i {
             get => stat_P_i;
-            set { 
+            private set { 
                 stat_P_i = value;
                 RaisePropertyChanged();
             }
@@ -26,7 +27,7 @@ namespace SeekAndDestroy.VM
         private double stat_t_i;
         public double Stat_t_i {
             get => stat_t_i;
-            set {
+            private set {
                 stat_t_i = value;
                 RaisePropertyChanged();
             }
@@ -34,7 +35,7 @@ namespace SeekAndDestroy.VM
         private double stat_n;
         public double Stat_n {
             get => stat_n;
-            set {
+            private set {
                 stat_n = value;
                 RaisePropertyChanged();
             }
@@ -42,34 +43,22 @@ namespace SeekAndDestroy.VM
         private double stat_k;
         public double Stat_k {
             get => stat_k;
-            set {
+            private set {
                 stat_k = value;
                 RaisePropertyChanged();
             }
         }
-        private double stat_P_n;
+        private List<double> stat_P_n = new List<double>();
         public double Stat_P_n {
-            get => stat_P_n;
-            set {
-                stat_P_n = value;
-                RaisePropertyChanged();
-            }
+            get => stat_P_n.Count > 0 ? stat_P_n.Average() : 0;
         }
-        private double stat_t_n;
+        private List<double> stat_t_n = new List<double>();
         public double Stat_t_n {
-            get => stat_t_n;
-            set {
-                stat_t_n = value;
-                RaisePropertyChanged();
-            }
+            get => stat_t_n.Count > 0 ? stat_t_n.Average() : 0;
         }
-        private double stat_m_n_s;
+        private List<double> stat_m_n_s = new List<double>();
         public double Stat_m_n_s {
-            get => stat_m_n_s;
-            set {
-                stat_m_n_s = value;
-                RaisePropertyChanged();
-            }
+            get => stat_m_n_s.Count > 0 ? stat_m_n_s.Average() : 0;
         }
         #endregion
         #region Target
@@ -77,17 +66,19 @@ namespace SeekAndDestroy.VM
         private double startTargetY;
         private RelativeKoordToAbsoluteConverter koordKonverter = new RelativeKoordToAbsoluteConverter();
         public double StartTargetX {
-            get => (double)koordKonverter.Convert(Target.X, typeof(double), null, System.Globalization.CultureInfo.CurrentCulture);
+            get => (double)koordKonverter.Convert(new object[] { Target.X, Settings.Default.TargetSize }, typeof(double), null, System.Globalization.CultureInfo.CurrentCulture);
             set {
-                var trgValue = (double)koordKonverter.ConvertBack(value, typeof(double), null, System.Globalization.CultureInfo.CurrentCulture);
+                var prm = new double[] { Settings.Default.TargetSize };
+                var trgValue = (double)koordKonverter.ConvertBack(value, new Type[] { typeof(double), typeof(double), typeof(double) }, prm, System.Globalization.CultureInfo.CurrentCulture)[0];
                 Target.X = startTargetX = trgValue;
                 RaisePropertyChanged();
             }
         }
         public double StartTargetY {
-            get => (double)koordKonverter.Convert(Target.Y, typeof(double), null, System.Globalization.CultureInfo.CurrentCulture);
+            get => (double)koordKonverter.Convert(new object[] { Target.Y, Settings.Default.TargetSize }, typeof(double), null, System.Globalization.CultureInfo.CurrentCulture);
             set {
-                var trgValue = (double)koordKonverter.ConvertBack(value, typeof(double), null, System.Globalization.CultureInfo.CurrentCulture);
+                var prm = new double[] { Settings.Default.TargetSize };
+                var trgValue = (double)koordKonverter.ConvertBack(value, new Type[] { typeof(double), typeof(double), typeof(double) }, prm, System.Globalization.CultureInfo.CurrentCulture)[0];
                 Target.Y = startTargetY = trgValue;
                 RaisePropertyChanged();
             }
@@ -150,9 +141,11 @@ namespace SeekAndDestroy.VM
                 totalRepeats = value;
                 RaisePropertyChanged();
             }
-        } 
+        }
         #endregion
         #region Props
+        public List<PathPoint> GraphPoints { get; private set; } = new List<PathPoint>();
+        public ObservableCollection<PathPoint> SeekerPath { get; set; } = new ObservableCollection<PathPoint>();
         public string Status {
             get => status;
             set {
@@ -166,6 +159,7 @@ namespace SeekAndDestroy.VM
             set {
                 isTargeting = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsRun));
             }
         }
         public bool IsSearch {
@@ -173,8 +167,10 @@ namespace SeekAndDestroy.VM
             set {
                 isSearch = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsRun));
             }
         }
+        public bool IsRun => isTargeting || isSearch;
         private List<RadarObject> RadarObjects;
         #endregion
 
@@ -213,13 +209,143 @@ namespace SeekAndDestroy.VM
             SelectedSearchType = SearchTypes.First();
         }
         private async Task startMethod() {
-            Status = "Двигаем цель!";
+            Seeker.X = selectedSearchType.Points.First().X;
+            Seeker.Y = selectedSearchType.Points.First().Y;
+            Seeker.SetPOI(selectedSearchType.Points.First());
+            StatClear();
+            IsSearch = !demoMode;
             Target.SetAngle();
-            for (int i = 0; i < 20; i++) {
-                Target.Step();
-                await Task.Delay(100);
+            if (demoMode) {
+                Target.X = Target.Y = -50;
+                Target.DX = Target.DY = 0;
+                Status = $"Демонстрация режима {selectedSearchType.Name}";
+                await Search();
             }
-            Status = "Опля!";
+            else {
+                Target.X = startTargetX;
+                Target.Y = startTargetY;
+                Status = "Поиск цели..."; 
+                for (Stat_n = 1; Stat_n <= TotalRepeats; Stat_n++) {
+
+                    await Search();
+                    stat_P_n.Add(stat_P_i);
+                    stat_t_n.Add(stat_t_i);
+                    stat_m_n_s.Add(stat_n);
+                    RaisePropertyChanged(nameof(Stat_P_n));
+                    RaisePropertyChanged(nameof(Stat_t_n));
+                    RaisePropertyChanged(nameof(Stat_m_n_s));
+                    await Task.Run(() => {
+                        Thread.Sleep(TimeSpan.FromSeconds(15));
+                    });
+                }
+            }
+        }
+
+        private void StatClear() {
+            Stat_k = 0;
+            Stat_n = 0;
+            Stat_P_i = 0;
+            Stat_t_i = 0;
+            stat_m_n_s.Clear();
+            stat_P_n.Clear();
+            stat_t_n.Clear();
+            SeekerPath.Clear();
+            RaisePropertyChanged(nameof(Stat_m_n_s));
+            RaisePropertyChanged(nameof(Stat_P_n));
+            RaisePropertyChanged(nameof(Stat_t_n));
+        }
+
+        private async Task Search() {
+            List<PathPoint> points = [.. selectedSearchType.Points];
+            if (withReturn) { 
+                var pointsReturn = new List<PathPoint>(points);
+                pointsReturn.Reverse();
+                pointsReturn.RemoveAt(0);
+                points.AddRange(pointsReturn);
+            }
+            SeekerPath.Add(selectedSearchType.Points.First());
+            SeekerPath.Add(selectedSearchType.Points.First());
+            for (int j = 1; j < points.Count; j++) {
+                Seeker.SetPOI(points[j]);
+                while (!Seeker.POIArrive) {
+                    await Step();
+                    SeekerPath.Remove(SeekerPath.Last());
+                    SeekerPath.Add(new PathPoint(Seeker.X, Seeker.Y));
+                    if (isTargetInSeeker) {
+                        await Targeting();
+                        return;
+                    }
+                    else if (!demoMode && Target.IsLost) {
+                        LostTarget();
+                        return;
+                    }
+                    Stat_t_i += 0.1;
+                }
+            }
+        }
+
+        private async Task Targeting() {
+            Status = "Наведение на цель!";
+            while (!isTargetFinded) { 
+                await Step();
+                Seeker.SetTarget(Target.X, Target.Y);
+                if (Target.IsLost) {
+                    LostTarget();
+                    return;
+                }
+            }
+            Status = "Цель поймана!";
+            Stat_P_i = 1;
+            Stat_k++;
+        }
+
+        private void LostTarget() {
+            Stat_P_i = 0;
+            Status = "Цель потеряна!";
+        }
+
+        private async Task Step() {
+            foreach (var item in RadarObjects) { 
+                item.Step();
+            }
+            GraphPoints.Clear();
+            double i = 0;
+            Random rnd = new Random();
+            double getNoise(double noiseWidth) { 
+                return (Random.Shared.NextDouble() - 1.0) / noiseWidth;
+            }
+            if (!isTargeting) {
+                for (i = 0.0; i <= 1.0; i += 0.02)
+                    GraphPoints.Add(new PathPoint(i, 0.7 + getNoise(4.0)));
+            }
+            else {
+                double sigma = 0.12;
+                double mu = 0.5;
+                for (i = 0.0; i <= 1.0; i += 0.02) {
+                    if (!isTargeting) {
+                        for (i = 0.0; i <= 1.0; i += 0.02)
+                            GraphPoints.Add(new PathPoint(i, 0.5 + getNoise(4.0)));
+                    }
+                    double gauss = 0.9 * Math.Exp(-((i - mu) * (i - mu)) / (2 * sigma * sigma));
+                    //1 - gauss - Y Reverse
+                    GraphPoints.Add(new PathPoint(i, 1 - gauss + getNoise(8.0)));
+                }
+            }
+            await Task.Run(() => {
+                RaisePropertyChanged(nameof(GraphPoints));
+                Thread.Sleep(100);
+            });
+        }
+
+        private bool isTargetInSeeker {
+            get {
+                double range = Settings.Default.SeekerSize / Settings.Default.CanvasSize / 2.0;
+                return (Seeker.X - Target.X <= range) && (Seeker.Y - Target.Y <= range); 
+            }
+        }
+
+        private bool isTargetFinded { 
+            get => Math.Abs(Target.X - Seeker.X) <=0.0001 && Math.Abs(Target.Y - Seeker.Y) <= 0.0001;
         }
     }
 }

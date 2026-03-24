@@ -13,29 +13,30 @@ using System.Windows.Media;
 
 namespace SeekAndDestroy.Converters
 {
-    public class RelativeKoordToAbsoluteConverter : IValueConverter, IMultiValueConverter {
+    public class RelativeKoordToAbsoluteConverter : IMultiValueConverter {
         /// <summary>
-        /// 0.5 => 250
+        /// Convert relative Koords to Absolute
+        /// 0.5, 50, 550 => 250 (0.5 * 550 - 50 / 2)
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="values">
+        /// double[]
+        /// 0 - Relative koord
+        /// 1 - Element Size (offset = ElSize/2
+        /// 2 - Container Size. Default - Settings.Default.CanvasSize
+        /// </param>
         /// <param name="targetType"></param>
         /// <param name="parameter"></param>
         /// <param name="culture"></param>
         /// <returns></returns>
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-            var koord = (double)value;
-            double offset = 0;
-            if (parameter != null && parameter is double dp) {
-                    offset = dp;
-            }
-            return koord * Settings.Default.CanvasSize - offset / 2;
-        }
-
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) {
-            if (values.Length < 2) return 0.0; 
-            if (!(values[0] is double relative)) return 0.0; 
-            if (!(values[1] is double size)) return 0.0;
-            return Convert(relative, typeof(double), size, culture);
+            if (values.Length < 2) return 0.0;
+            double elementSize, relativeCoord, containerSize;
+            if (!(values[0] is double)) return 0.0; 
+            relativeCoord = (double)values[0];
+            if (!(values[1] is double)) return 0.0;
+            elementSize = (double)values[1];
+            containerSize = (values.Count() >= 3 && (values[2] is double)) ? (double)values[2] : Settings.Default.CanvasSize;
+            return relativeCoord * containerSize - elementSize / 2;
         }
 
         /// <summary>
@@ -43,23 +44,22 @@ namespace SeekAndDestroy.Converters
         /// </summary>
         /// <param name="value"></param>
         /// <param name="targetType"></param>
-        /// <param name="parameter"></param>
+        /// <param name="parameter">
+        /// double[]
+        /// 0 - Element Size (offset = ElSize/2
+        /// 1 - Container Size. Default - Settings.Default.CanvasSize
+        /// </param>
         /// <param name="culture"></param>
         /// <returns></returns>
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
-            double offset = 0;
-            if (parameter != null && parameter is double dp) {
-                    offset = dp;
-                }
-            var koord = (double)value + offset / 2;
-            return koord / Settings.Default.CanvasSize;
-        }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) {
-            if (!(value is double absolute)) return new object[] { Binding.DoNothing, Binding.DoNothing };
-            if (!(parameter is double size)) return new object[] { Binding.DoNothing, Binding.DoNothing };
-            return new object[] { Convert(absolute, typeof(double), size, culture), Binding.DoNothing };
+            if (!(value is double absoluteCoord)) return new object[] { Binding.DoNothing, Binding.DoNothing, Binding.DoNothing };
+            double containerSize;
+            if (parameter is double[] parArray) {
+                containerSize = (parArray.Count()>=2) ? parArray[1] : Settings.Default.CanvasSize;
+                return new object[] { (absoluteCoord + parArray[0] / 2) / containerSize, Binding.DoNothing, Binding.DoNothing };
+            }
+            return new object[] { Binding.DoNothing, Binding.DoNothing, Binding.DoNothing };
         }
     }
-
 }
